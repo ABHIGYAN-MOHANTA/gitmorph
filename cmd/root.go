@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -40,7 +39,7 @@ func init() {
 func loadProfiles() {
 	profiles = make(map[string]Profile)
 
-	data, err := ioutil.ReadFile(configFile)
+	data, err := os.ReadFile(configFile)
 	if err == nil {
 		json.Unmarshal(data, &profiles)
 	}
@@ -48,5 +47,5 @@ func loadProfiles() {
 
 func saveProfiles() {
 	data, _ := json.MarshalIndent(profiles, "", "  ")
-	ioutil.WriteFile(configFile, data, 0644)
+	os.WriteFile(configFile, data, 0644)
 }
