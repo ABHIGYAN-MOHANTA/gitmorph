@@ -14,8 +14,32 @@ GitMorph is a powerful CLI tool that allows you to seamlessly switch between mul
 To install GitMorph, make sure you have Go installed on your system, then run:
 
 ```bash
-go get github.com/abhigyan-mohanta/gitmorph
+go install github.com/abhigyan-mohanta/gitmorph
 ```
+
+### Update PATH
+
+After installation, you may need to add the Go binaries directory to your system's `PATH` so you can run `gitmorph` from anywhere. Here are the steps:
+
+1. Check the directory where Go installs executables by running:
+   ```bash
+   go env GOPATH
+   ```
+
+2. Open your `.zshrc` file for editing:
+   ```bash
+   nano ~/.zshrc
+   ```
+
+3. Add the following line to include the Go binaries directory in your `PATH`:
+   ```bash
+   export PATH=$PATH:$(go env GOPATH)/bin
+   ```
+
+4. Save the file and exit, then apply the changes:
+   ```bash
+   source ~/.zshrc
+   ```
 
 ## Usage
 
