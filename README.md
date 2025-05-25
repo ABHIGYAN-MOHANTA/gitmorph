@@ -2,7 +2,7 @@
 
 GitMorph is a powerful CLI tool that allows you to seamlessly switch between multiple Git identities on your local machine. Perfect for developers who work on different projects with various Git accounts.
 
-<img width="929" alt="Screenshot 2024-10-12 at 2 22 09 AM" src="https://github.com/user-attachments/assets/4860e7cb-0a2d-4ffc-bc31-f6f60b3d4b75">
+<img width="826" alt="Screenshot 2025-05-25 at 9 59 25 AM" src="https://github.com/user-attachments/assets/c0801555-546a-4b69-a9b0-508d0b9c60ad" />
 
 ## Features
 
