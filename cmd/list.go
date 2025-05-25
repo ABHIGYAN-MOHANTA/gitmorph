@@ -15,6 +15,6 @@ var listCmd = &cobra.Command{
 func listProfiles(cmd *cobra.Command, args []string) {
 	fmt.Println("Available Git profiles:")
 	for name, profile := range profiles {
-		fmt.Printf("- %s (Username: %s, Email: %s)\n", name, profile.Username, profile.Email)
+		fmt.Printf("- %s (Username: %s, Email: %s, SSH: %s)\n", name, profile.Username, profile.Email, profile.SSHKey)
 	}
 }

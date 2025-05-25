@@ -12,6 +12,7 @@ type Profile struct {
 	Name     string `json:"name"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	SSHKey   string `json:"sshKey,omitempty"`
 }
 
 var profiles map[string]Profile

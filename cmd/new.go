@@ -30,10 +30,18 @@ func createNewProfile(cmd *cobra.Command, args []string) {
 	email, _ := reader.ReadString('\n')
 	email = strings.TrimSpace(email)
 
+	fmt.Print("Enter SSH private key path (leave blank for default ~/.ssh/id_ed25519): ")
+	sshKey, _ := reader.ReadString('\n')
+	sshKey = strings.TrimSpace(sshKey)
+	if sshKey == "" {
+		sshKey = "~/.ssh/id_ed25519"
+	}
+
 	profiles[name] = Profile{
 		Name:     name,
 		Username: username,
 		Email:    email,
+		SSHKey:   sshKey,
 	}
 
 	saveProfiles()

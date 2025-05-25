@@ -2,13 +2,15 @@
 
 GitMorph is a powerful CLI tool that allows you to seamlessly switch between multiple Git identities on your local machine. Perfect for developers who work on different projects with various Git accounts.
 
-<img width="929" alt="Screenshot 2024-10-12 at 2 22 09 AM" src="https://github.com/user-attachments/assets/4860e7cb-0a2d-4ffc-bc31-f6f60b3d4b75">
+<img width="929" alt="Screenshot 2024-10-12 at 2 22 09 AM" src="https://github.com/user-attachments/assets/4860e7cb-0a2d-4ffc-bc31-f6f60b3d4b75">
 
 ## Features
 
 - Create and manage multiple Git profiles
-- Easily switch between different Git identities
-- List all available profiles
+- Easily switch between different Git identities (incl. per-profile SSH key)
+- List all available profiles (shows SSH key path)
+- Edit existing profiles
+- Delete profiles
 - Simple and intuitive command-line interface
 
 ## Installation
@@ -16,32 +18,17 @@ GitMorph is a powerful CLI tool that allows you to seamlessly switch between mul
 To install GitMorph, make sure you have Go installed on your system, then run:
 
 ```bash
-go install github.com/abhigyan-mohanta/gitmorph
-```
+go install github.com/abhigyan-mohanta/gitmorph@latest
+````
 
 ### Update PATH
 
-After installation, you may need to add the Go binaries directory to your system's `PATH` so you can run `gitmorph` from anywhere. Here are the steps:
+After installation, you may need to add the Go binaries directory to your system's `PATH` so you can run `gitmorph` from anywhere:
 
-1. Check the directory where Go installs executables by running:
-   ```bash
-   go env GOPATH
-   ```
-
-2. Open your `.zshrc` file for editing:
-   ```bash
-   nano ~/.zshrc
-   ```
-
-3. Add the following line to include the Go binaries directory in your `PATH`:
-   ```bash
-   export PATH=$PATH:$(go env GOPATH)/bin
-   ```
-
-4. Save the file and exit, then apply the changes:
-   ```bash
-   source ~/.zshrc
-   ```
+```bash
+echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.zshrc
+source ~/.zshrc
+```
 
 ## Usage
 
@@ -53,15 +40,12 @@ GitMorph provides the following commands:
 gitmorph new
 ```
 
-This command will prompt you to enter a profile name, Git username, and Git email.
+Prompts for:
 
-### Switch to a profile
-
-```bash
-gitmorph switch <profile-name>
-```
-
-This command switches your global Git configuration to the specified profile.
+* **Profile name**
+* **Git username**
+* **Git email**
+* **SSH private key path** (leave blank for `~/.ssh/id_ed25519`)
 
 ### List all profiles
 
@@ -69,79 +53,92 @@ This command switches your global Git configuration to the specified profile.
 gitmorph list
 ```
 
-This command displays all available Git profiles.
+Shows:
+
+```
+Available Git profiles:
+- work     (Username: alice, Email: alice@corp.com, SSH: ~/.ssh/id_ed25519_work)
+- personal (Username: alice123, Email: alice@gmail.com, SSH: ~/.ssh/id_ed25519)
+```
+
+### Switch to a profile
+
+```bash
+gitmorph switch <profile-name>
+```
+
+* Sets `user.name` and `user.email` globally
+* Sets or unsets `core.sshCommand` to use the profile’s SSH key
+
+### Edit a profile
+
+```bash
+gitmorph edit <profile-name>
+```
+
+Interactively update any of:
+
+* Username
+* Email
+* SSH key path
+
+Leave a prompt blank to keep the current value.
+
+### Delete a profile
+
+```bash
+gitmorph delete <profile-name>
+```
+
+Removes the profile entry from `~/.gitmorph.json`.
 
 ## How It Works
 
-GitMorph stores your Git profiles in a JSON file located at `~/.gitmorph.json`. When you switch profiles, it updates your global Git configuration using the `git config --global` command.
+GitMorph stores your Git profiles in a JSON file located at `~/.gitmorph.json`. Commands:
+
+* `new` / `edit` / `delete` modify the JSON
+* `switch` updates your global Git config:
+
+   * `git config --global user.name <username>`
+   * `git config --global user.email <email>`
+   * `git config --global core.sshCommand "ssh -i <sshKey>"`
+
+If you delete or switch back to a profile with no custom key, it unsets `core.sshCommand`.
 
 ## Code Structure
 
-The project is structured as follows:
-
-- `main.go`: Entry point of the application
-- `cmd/root.go`: Defines the root command and common functionality
-- `cmd/new.go`: Implements the "new" command to create profiles
-- `cmd/switch.go`: Implements the "switch" command to change profiles
-- `cmd/list.go`: Implements the "list" command to display profiles
+* `main.go`: Entry point
+* `cmd/root.go`: Root command, loading/saving JSON
+* `cmd/new.go`: `new` command
+* `cmd/list.go`: `list` command
+* `cmd/switch.go`: `switch` command
+* `cmd/edit.go`: `edit` command
+* `cmd/delete.go`: `delete` command
 
 ## SSH Configuration
 
-For seamless Git operations with multiple accounts, you can set up SSH configurations. Below is an example of how your SSH config file (`~/.ssh/config`) should look:
+You can still use `~/.ssh/config` if you like; GitMorph’s per-profile `core.sshCommand` will override it when set.
+
+Example `~/.ssh/config`:
 
 ```plaintext
-# Work GitHub Account
 Host github.com
-    HostName github.com
-    User git
-    IdentityFile ~/.ssh/id_ed25519
-    AddKeysToAgent yes
-    
-# Personal GitHub Account
-Host github.com-personal
-    HostName github.com
-    User git
-    IdentityFile ~/.ssh/id_ed25519_personal
-    AddKeysToAgent yes
-```
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519
 
-### Note on SSH Key Generation
-
-To create an SSH key for your personal account, you can use the following command:
-
-```bash
-ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_ed25519_personal
-```
-
-### Usage Tips
-
-- When using the main `id_ed25519.pub`, the normal command for pushing changes works as expected:
-
-```bash
-git push -u origin main
-```
-
-- For other accounts, you need to specify the SSH command:
-
-```bash
-GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_personal" git push -u origin main
-```
-
-- Alternatively, you can configure the SSH command to use your SSH config file:
-
-```bash
-GIT_SSH_COMMAND="ssh -F ~/.ssh/config" git push -u origin main
+Host github.com-work
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_work
 ```
 
 ## Dependencies
 
-GitMorph uses the following external libraries:
-
 ```go
 require (
-    github.com/inconshreveable/mousetrap v1.1.0 // indirect
-    github.com/spf13/cobra v1.8.1 // indirect
-    github.com/spf13/pflag v1.0.5 // indirect
+    github.com/spf13/cobra v1.8.1
+    github.com/spf13/pflag v1.0.5
 )
 ```
 
