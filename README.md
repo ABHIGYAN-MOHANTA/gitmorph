@@ -133,6 +133,91 @@ Host github.com-work
   IdentityFile ~/.ssh/id_ed25519_work
 ```
 
+## Auto switch by .gitmorph config
+
+1.  Add .gitmorph in root directory of git repo
+    ```
+    cat 'personal' >> .gitmorph
+    ```
+2. add script in bash profile, ie .bashrc/.zshrc or .profile, replace the DEFAULT_GITMORPH_PROFILE if need. 
+
+```bash
+# Define the default profile
+DEFAULT_GITMORPH_PROFILE="work"
+
+# Get the path of the original git command
+ORIGINAL_GIT=$(command -v git)
+
+# Define a function to automatically switch gitmorph profile
+function check_and_switch_gitmorph() {
+    local proceed_with_git=true  # Flag to determine if git command should proceed
+
+    # Prevent recursive calls
+    if [[ "$SKIP_GITMORPH" == "1" ]]; then
+        return
+    fi
+
+    # Check if the current directory is a subdirectory of a git repository
+    # Use the original git command to get the repository root directory
+    if repo_root=$($ORIGINAL_GIT rev-parse --show-toplevel 2>/dev/null); then
+        # Initialize profile_name as empty
+        profile_name=""
+        # Check if the .gitmorph file exists
+        if [ -f "$repo_root/.gitmorph" ]; then
+            # Read the profile name from the .gitmorph file
+            profile_name=$(cat "$repo_root/.gitmorph")
+            # Check if the profile name is empty
+            if [ -z "$profile_name" ]; then
+                echo ".gitmorph file is empty, using default profile: $DEFAULT_GITMORPH_PROFILE"
+                profile_name=$DEFAULT_GITMORPH_PROFILE
+            fi
+        else
+            echo "No .gitmorph file found in the repository root, using default profile: $DEFAULT_GITMORPH_PROFILE"
+            profile_name=$DEFAULT_GITMORPH_PROFILE
+        fi
+
+        # Set the SKIP_GITMORPH environment variable to prevent recursive calls
+        # Redirect both standard output and error output to a variable
+        switch_output=$(SKIP_GITMORPH=1 gitmorph switch $profile_name 2>&1)
+        success_pattern="Switched to Git profile"
+        echo ">>>>$switch_output"
+
+        if [[ "$switch_output" == *"$success_pattern"* ]]; then
+            echo -e "Using gitmorph Profile: \033[31m$profile_name\033[0m"
+        else
+            # Switch failed, output relevant information and do not proceed with git command
+            proceed_with_git=false
+            echo -e "\033[31m==========Gitmorph Error============\033[0m"
+            echo -e "\033[31mError: Failed to switch to gitmorph profile: $profile_name\033[0m"
+            echo -e "\033[31mCheck the details below:\033[0m"
+            echo "$switch_output"
+            echo -e "\033[31mPlease ensure the profile exists and the SSH key is correctly configured.\033[0m"
+            echo -e "\033[31mGit command aborted.\033[0m"
+            echo -e "\033[31m==========End Gitmorph Error============\033[0m"
+        fi
+    fi
+
+    # Export the flag to determine if git command should proceed
+    if [[ "$proceed_with_git" == true ]]; then
+        export GITMORPH_SWITCH_SUCCESSFUL=1
+    else
+        export GITMORPH_SWITCH_SUCCESSFUL=0
+    fi
+}
+
+# Override the git command
+function git() {
+    check_and_switch_gitmorph
+
+    # Check if git command should proceed
+    if [[ "$GITMORPH_SWITCH_SUCCESSFUL" == "1" ]]; then
+        $ORIGINAL_GIT "$@"
+    else
+        echo -e "\033[31mGit command aborted due to failed profile switch.\033[0m"
+    fi
+}
+   ```
+
 ## Dependencies
 
 ```go
