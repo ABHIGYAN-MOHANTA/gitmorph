@@ -1,4 +1,5 @@
-# GitMorph
+# GitMorph 
+**Now available on Homebrew as well**
 
 GitMorph is a powerful CLI tool that allows you to seamlessly switch between multiple Git identities on your local machine. It ensures that all Git commands use the active profile’s identity and SSH key. Perfect for developers who work on different projects with various Git accounts and want consistent commits across repositories.
 
