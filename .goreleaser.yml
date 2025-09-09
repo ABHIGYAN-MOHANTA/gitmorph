@@ -3,7 +3,7 @@ project_name: gitmorph
 
 builds:
   - id: gitmorph
-    main: ./cmd/gitmorph/main.go
+    main: ./main.go
     goos:
       - darwin
       - linux
