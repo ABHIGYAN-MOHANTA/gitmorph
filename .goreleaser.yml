@@ -11,7 +11,7 @@ builds:
       - amd64
     env:
       - CGO_ENABLED=0
-    main: ./cmd/gitmorph/main.go
+    main: ./main.go
     dir: .
 
   - id: linux_arm64
@@ -22,7 +22,7 @@ builds:
       - arm64
     env:
       - CGO_ENABLED=0
-    main: ./cmd/gitmorph/main.go
+    main: ./main.go
     dir: .
 
   - id: darwin_amd64
@@ -33,7 +33,7 @@ builds:
       - amd64
     env:
       - CGO_ENABLED=0
-    main: ./cmd/gitmorph/main.go
+    main: ./main.go
     dir: .
 
   - id: darwin_arm64
@@ -44,7 +44,7 @@ builds:
       - arm64
     env:
       - CGO_ENABLED=0
-    main: ./cmd/gitmorph/main.go
+    main: ./main.go
     dir: .
 
 # Archive configuration: include only the binary at root
