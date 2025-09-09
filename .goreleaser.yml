@@ -1,0 +1,41 @@
+version: 2
+
+# Build configuration
+builds:
+  - binary: gitmorph
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+
+# Homebrew tap configuration
+brews:
+  - name: gitmorph
+    homepage: "https://github.com/abhigyan-mohanta/gitmorph"
+    description: "Switch between multiple Git profiles effortlessly 🚀"
+    license: "MIT"
+    repository:
+      owner: abhigyan-mohanta
+      name: homebrew-gitmorph
+    commit_author:
+      name: abhigyan-mohanta
+      email: underthunder02@gmail.com
+    install: "bin.install 'gitmorph'"
+    # The SHA256 checksums are auto-calculated by GoReleaser
+
+# Release configuration
+release:
+  github:
+    owner: abhigyan-mohanta
+    name: gitmorph
+  prerelease: auto
+
+# Archive configuration (optional, for tar.gz/zips)
+archives:
+  - format: tar.gz
+    files:
+      - gitmorph
