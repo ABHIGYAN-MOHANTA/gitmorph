@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+# Add permissions for the workflow
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -52,15 +57,16 @@ jobs:
           echo "Next version: $NEXT_VERSION"
           echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
-      # 4️⃣ Configure git to use token for pushing tags
-      - name: Configure Git for token
+      # 4️⃣ Configure git to use GITHUB_TOKEN
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.PUBLISHER_TOKEN }}@github.com/${{ github.repository }}.git
 
-      # 5️⃣ Tag & push
+      # 5️⃣ Tag & push using GITHUB_TOKEN
       - name: Create and push tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git tag ${{ steps.next_version.outputs.next_version }}
           git push origin ${{ steps.next_version.outputs.next_version }}
@@ -72,5 +78,5 @@ jobs:
       # 7️⃣ Run GoReleaser
       - name: Release with GoReleaser
         env:
-          GITHUB_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: goreleaser release --clean
