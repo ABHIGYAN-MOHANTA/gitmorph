@@ -1,0 +1,39 @@
+project_name: gitmorph
+
+builds:
+  - id: gitmorph
+    main: ./cmd/gitmorph/main.go
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -mod=vendor
+
+archives:
+  - id: gitmorph
+    builds:
+      - gitmorph
+    format: tar.gz
+    files:
+      - gitmorph
+
+universal_binaries:
+  - id: gitmorph
+    name_template: "{{.ProjectName}}_{{.Version}}"
+    ids:
+      - gitmorph
+    replace: true
+
+homebrew_casks:
+  - name: gitmorph
+    homepage: https://github.com/abhigyan-mohanta/gitmorph
+    tap:
+      owner: abhigyan-mohanta
+      name: homebrew-tap
+    binary: gitmorph
+    template: "https://github.com/abhigyan-mohanta/gitmorph/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
