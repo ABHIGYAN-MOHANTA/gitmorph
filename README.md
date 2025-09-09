@@ -13,7 +13,7 @@ GitMorph is a powerful CLI tool that allows you to seamlessly switch between mul
 - Delete profiles
 - Simple and intuitive command-line interface
 
-## Installation
+## Installation 
 
 To install GitMorph, make sure you have Go installed on your system, then run:
 
