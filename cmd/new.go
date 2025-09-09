@@ -15,12 +15,21 @@ var newCmd = &cobra.Command{
 	Run:   createNewProfile,
 }
 
+func init() {
+	RootCmd.AddCommand(newCmd)
+}
+
 func createNewProfile(cmd *cobra.Command, args []string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Enter profile name: ")
 	name, _ := reader.ReadString('\n')
 	name = strings.TrimSpace(name)
+
+	if _, exists := profiles[name]; exists {
+		fmt.Printf("Profile '%s' already exists. Use 'edit %s' to modify it.\n", name, name)
+		return
+	}
 
 	fmt.Print("Enter Git username: ")
 	username, _ := reader.ReadString('\n')
@@ -37,13 +46,36 @@ func createNewProfile(cmd *cobra.Command, args []string) {
 		sshKey = "~/.ssh/id_ed25519"
 	}
 
-	profiles[name] = Profile{
+	// Default to false
+	newProfile := Profile{
 		Name:     name,
 		Username: username,
 		Email:    email,
 		SSHKey:   sshKey,
+		Default:  false,
 	}
 
+	// Ask if this should be default
+	fmt.Print("Set this profile as default? (y/N): ")
+	resp, _ := reader.ReadString('\n')
+	resp = strings.TrimSpace(strings.ToLower(resp))
+
+	if resp == "y" || resp == "yes" {
+		// Clear any old default
+		for k, p := range profiles {
+			p.Default = false
+			profiles[k] = p
+		}
+		newProfile.Default = true
+	}
+
+	profiles[name] = newProfile
 	saveProfiles()
-	fmt.Printf("Profile '%s' created successfully.\n", name)
+
+	fmt.Printf("Profile '%s' created successfully", name)
+	if newProfile.Default {
+		fmt.Print(" and set as default.\n")
+	} else {
+		fmt.Print(".\n")
+	}
 }

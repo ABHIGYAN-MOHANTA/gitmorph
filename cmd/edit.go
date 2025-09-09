@@ -55,7 +55,36 @@ func editProfile(cmd *cobra.Command, args []string) {
 		profile.SSHKey = input
 	}
 
-	// save back into map and disk
+	// Default flag
+	fmt.Printf("Is this the default profile? (current: %v) [y/N]: ", profile.Default)
+	input, _ = reader.ReadString('\n')
+	input = strings.TrimSpace(strings.ToLower(input))
+
+	if input == "y" || input == "yes" {
+		// clear other defaults
+		for k, p := range profiles {
+			p.Default = false
+			profiles[k] = p
+		}
+		profile.Default = true
+	} else if input == "n" || input == "no" {
+		// check if this is the only default profile
+		isOnlyDefault := true
+		for k, p := range profiles {
+			if k != name && p.Default {
+				isOnlyDefault = false
+				break
+			}
+		}
+		if isOnlyDefault {
+			fmt.Println("⚠️ Cannot unset default: at least one profile must be default.")
+			profile.Default = true
+		} else {
+			profile.Default = false
+		}
+	}
+
+	// Save back into map and disk
 	profiles[name] = profile
 	saveProfiles()
 

@@ -1,52 +1,88 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
-
-	"github.com/spf13/cobra"
 )
 
-var switchCmd = &cobra.Command{
-	Use:   "switch [profile name]",
-	Short: "Switch to a specific Git profile",
-	Args:  cobra.ExactArgs(1),
-	Run:   switchProfile,
-}
-
-func switchProfile(cmd *cobra.Command, args []string) {
-	name := args[0]
+// switchToProfile switches Git config based on profile.
+// If silent is true, suppresses printing and command output.
+func switchToProfile(name string, silent bool) error {
 	profile, exists := profiles[name]
 	if !exists {
-		fmt.Printf("Profile '%s' does not exist.\n", name)
-		return
+		return fmt.Errorf("profile '%s' does not exist", name)
 	}
 
-	setGitConfig("user.name", profile.Username)
-	setGitConfig("user.email", profile.Email)
+	// Determine whether to apply locally (repo) or globally
+	local := false
+	if data, err := os.ReadFile(".gitmorph"); err == nil {
+		var f map[string]string
+		if jsonErr := json.Unmarshal(data, &f); jsonErr == nil {
+			if p, ok := f["profile"]; ok && p == name {
+				local = true
+			}
+		}
+	}
 
-	// configure per-profile SSH key via core.sshCommand
-	if profile.SSHKey != "" {
-		// Git 2.10+ supports this
-		sshCmd := fmt.Sprintf("ssh -i %s", profile.SSHKey)
-		setGitConfig("core.sshCommand", sshCmd)
+	var cmds []*exec.Cmd
+	if local {
+		// Apply to local repo
+		cmds = []*exec.Cmd{
+			exec.Command("git", "config", "--local", "user.name", profile.Username),
+			exec.Command("git", "config", "--local", "user.email", profile.Email),
+		}
 	} else {
-		// fall back to default SSH key: remove custom setting if previously set
-		exec.Command("git", "config", "--global", "--unset", "core.sshCommand").Run()
+		// Apply to global
+		cmds = []*exec.Cmd{
+			exec.Command("git", "config", "--global", "user.name", profile.Username),
+			exec.Command("git", "config", "--global", "user.email", profile.Email),
+		}
 	}
 
-	fmt.Printf("Switched to Git profile: %s\n", name)
-	fmt.Printf("Username: %s\n", profile.Username)
-	fmt.Printf("Email: %s\n", profile.Email)
-	fmt.Printf("SSH key: %s\n", profile.SSHKey)
-}
-
-func setGitConfig(key, value string) {
-	cmd := exec.Command("git", "config", "--global", key, value)
-	err := cmd.Run()
-	if err != nil {
-		fmt.Printf("Error setting %s: %v\n", key, err)
-		os.Exit(1)
+	run := func(c *exec.Cmd) error {
+		if silent {
+			devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
+			if err != nil {
+				return err
+			}
+			defer devNull.Close()
+			c.Stdout = devNull
+			c.Stderr = devNull
+		} else {
+			c.Stdout = os.Stdout
+			c.Stderr = os.Stderr
+		}
+		return c.Run()
 	}
+
+	for _, c := range cmds {
+		if err := run(c); err != nil {
+			return fmt.Errorf("failed to set git config: %w", err)
+		}
+	}
+
+	// Configure SSH key globally if present
+	if profile.SSHKey != "" {
+		sshCmd := fmt.Sprintf("ssh -i %s", profile.SSHKey)
+		c := exec.Command("git", "config", "--global", "core.sshCommand", sshCmd)
+		if err := run(c); err != nil {
+			return fmt.Errorf("failed to set core.sshCommand: %w", err)
+		}
+	} else {
+		// unset previous SSH key if exists
+		c := exec.Command("git", "config", "--global", "--unset", "core.sshCommand")
+		_ = run(c) // ignore errors
+	}
+
+	if !silent {
+		scope := "global"
+		if local {
+			scope = "local"
+		}
+		fmt.Printf("Switched to profile '%s' (%s)\n", name, scope)
+	}
+
+	return nil
 }
