@@ -15,14 +15,10 @@ builds:
     flags:
       - -mod=vendor
 
-# Only archive normal builds, universal binaries handled automatically
 archives:
-  - id: gitmorph
+  - id: linux_archives
     builds:
-      - gitmorph_linux_amd64
-      - gitmorph_linux_arm64
-      - gitmorph_darwin_amd64
-      - gitmorph_darwin_arm64
+      - gitmorph
     format: tar.gz
     files:
       - gitmorph
@@ -40,4 +36,4 @@ homebrew_casks:
     repository:
       owner: abhigyan-mohanta
       name: homebrew-tap
-    binary: gitmorph
+    binary: dist/gitmorph_darwin_all/gitmorph_{{.Version}} # point to universal binary
