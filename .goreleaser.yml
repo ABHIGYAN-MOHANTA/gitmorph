@@ -1,0 +1,93 @@
+version: 2
+project_name: gitmorph
+
+# Build configuration: unique IDs per OS/arch
+builds:
+  - id: linux_amd64
+    binary: gitmorph
+    goos:
+      - linux
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/gitmorph/main.go
+    dir: .
+
+  - id: linux_arm64
+    binary: gitmorph
+    goos:
+      - linux
+    goarch:
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/gitmorph/main.go
+    dir: .
+
+  - id: darwin_amd64
+    binary: gitmorph
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/gitmorph/main.go
+    dir: .
+
+  - id: darwin_arm64
+    binary: gitmorph
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/gitmorph/main.go
+    dir: .
+
+# Archive configuration: include only the binary at root
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - gitmorph
+
+# Homebrew tap configuration (using brews, compatible with older GoReleaser)
+brews:
+  - name: gitmorph
+    homepage: "https://github.com/abhigyan-mohanta/gitmorph"
+    description: "Switch between multiple Git profiles effortlessly 🚀"
+    license: "MIT"
+    repository:
+      owner: abhigyan-mohanta
+      name: homebrew-gitmorph
+    commit_author:
+      name: abhigyan-mohanta
+      email: underthunder02@gmail.com
+    install: "bin.install 'gitmorph'"
+
+# Release configuration
+release:
+  github:
+    owner: abhigyan-mohanta
+    name: gitmorph
+  prerelease: auto
+
+# Changelog configuration
+changelog:
+  use: git
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+# Snapshot configuration (optional)
+snapshot:
+  name_template: "{{ .Tag }}-snapshot"
+
+# Before hooks
+before:
+  hooks:
+    - go mod tidy
