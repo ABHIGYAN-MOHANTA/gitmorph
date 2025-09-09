@@ -45,6 +45,12 @@ Make sure you have **Go** installed, then run:
 ```bash
 go install github.com/abhigyan-mohanta/gitmorph@latest
 ```
+or with Homebrew
+
+```bash
+brew tap abhigyan-mohanta/homebrew-tap
+brew install --cask gitmorph
+```
 
 ### Update PATH
 
