@@ -1,3 +1,4 @@
+version: 2
 project_name: gitmorph
 
 builds:
@@ -31,9 +32,8 @@ universal_binaries:
 
 homebrew_casks:
   - name: gitmorph
-    homepage: https://github.com/abhigyan-mohanta/gitmorph
-    tap:
+    homepage: "https://github.com/abhigyan-mohanta/gitmorph"
+    repository:
       owner: abhigyan-mohanta
       name: homebrew-tap
     binary: gitmorph
-    template: "https://github.com/abhigyan-mohanta/gitmorph/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
