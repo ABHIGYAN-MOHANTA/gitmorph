@@ -1,4 +1,4 @@
-name: Release
+name: Auto Release
 
 on:
   push:
@@ -7,29 +7,28 @@ on:
 
 jobs:
   release:
-    name: Auto Release
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repo
-      - name: Checkout
+      # 1️⃣ Checkout full history for tags
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Needed to get full history for tags
+          fetch-depth: 0
 
-      # Set up Go
-      - name: Set up Go
+      # 2️⃣ Set up Go (needed for GoReleaser)
+      - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
 
-      # Determine next tag version
-      - name: Determine next version
+      # 3️⃣ Calculate next version automatically
+      - name: Calculate next version
         id: next_version
+        shell: bash
         run: |
           git fetch --tags
           LAST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
           echo "Last tag: $LAST_TAG"
-
           VERSION=${LAST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
@@ -43,9 +42,8 @@ jobs:
                 MAJOR=$((MAJOR + 1))
               fi
             fi
-
             NEXT_VERSION="v$MAJOR.$MINOR.$PATCH"
-
+            # Check if tag exists
             if ! git rev-parse "$NEXT_VERSION" >/dev/null 2>&1; then
               break
             fi
@@ -54,24 +52,25 @@ jobs:
           echo "Next version: $NEXT_VERSION"
           echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
-      # Configure git to push tags using PUBLISHER_TOKEN
-      - name: Configure Git for pushing tags
+      # 4️⃣ Configure git to use token for pushing tags
+      - name: Configure Git for token
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.PUBLISHER_TOKEN }}@github.com/${{ github.repository }}.git
 
-      # Create and push the tag
+      # 5️⃣ Tag & push
       - name: Create and push tag
         run: |
           git tag ${{ steps.next_version.outputs.next_version }}
           git push origin ${{ steps.next_version.outputs.next_version }}
 
-      # Install GoReleaser and release
-      - name: Install and Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          version: latest
-          args: release --clean
+      # 6️⃣ Install GoReleaser
+      - name: Install GoReleaser
+        run: curl -sL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | bash
+
+      # 7️⃣ Run GoReleaser
+      - name: Release with GoReleaser
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
+        run: goreleaser release --clean
