@@ -71,12 +71,12 @@ jobs:
           git tag ${{ steps.next_version.outputs.next_version }}
           git push origin ${{ steps.next_version.outputs.next_version }}
 
-      # 6️⃣ Install GoReleaser
-      - name: Install GoReleaser
-        run: curl -sL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | bash
-
-      # 7️⃣ Run GoReleaser
-      - name: Release with GoReleaser
+      # 6️⃣ Run GoReleaser
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: goreleaser release --clean
