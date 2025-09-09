@@ -2,32 +2,65 @@ version: 2
 project_name: gitmorph
 
 builds:
-  - id: gitmorph
+  - id: gitmorph_linux_amd64
     main: ./main.go
     goos:
-      - darwin
       - linux
     goarch:
       - amd64
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -mod=vendor
+
+  - id: gitmorph_linux_arm64
+    main: ./main.go
+    goos:
+      - linux
+    goarch:
       - arm64
     env:
       - CGO_ENABLED=0
     flags:
       - -mod=vendor
 
+  - id: gitmorph_darwin_amd64
+    main: ./main.go
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -mod=vendor
+
+  - id: gitmorph_darwin_arm64
+    main: ./main.go
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -mod=vendor
+
+# Only archive Linux builds; macOS universal handled separately
 archives:
   - id: linux_archives
     builds:
-      - gitmorph
+      - gitmorph_linux_amd64
+      - gitmorph_linux_arm64
     format: tar.gz
-    files:
-      - gitmorph
 
+# Universal macOS binary
 universal_binaries:
   - id: gitmorph
     name_template: "{{.ProjectName}}_{{.Version}}"
     ids:
-      - gitmorph
+      - gitmorph_darwin_amd64
+      - gitmorph_darwin_arm64
     replace: true
 
 homebrew_casks:
@@ -36,4 +69,4 @@ homebrew_casks:
     repository:
       owner: abhigyan-mohanta
       name: homebrew-tap
-    binary: dist/gitmorph_darwin_all/gitmorph_{{.Version}} # point to universal binary
+    binary: dist/gitmorph_darwin_all/gitmorph_{{.Version}}
