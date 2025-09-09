@@ -46,37 +46,36 @@ builds:
     flags:
       - -mod=vendor
 
-# Universal macOS binary
+# Universal macOS binary (name fixed to "gitmorph")
 universal_binaries:
   - id: gitmorph
-    name_template: "{{.ProjectName}}_{{.Version}}"
+    name_template: "gitmorph"       # binary inside archive will be just "gitmorph"
     ids:
       - gitmorph_darwin_amd64
       - gitmorph_darwin_arm64
     replace: true
 
-# Archive both Linux builds and the universal Darwin binary
+# Archives
 archives:
   - id: linux_archives
     builds:
       - gitmorph_linux_amd64
       - gitmorph_linux_arm64
     format: tar.gz
-    
+
   - id: darwin_archive
     builds:
-      - gitmorph  # This references the universal binary ID
+      - gitmorph                  # references the universal binary
     format: tar.gz
     name_template: "{{.ProjectName}}_{{.Version}}_darwin_all"
 
+# Homebrew Cask
 homebrew_casks:
   - name: gitmorph
     homepage: "https://github.com/abhigyan-mohanta/gitmorph"
     repository:
       owner: abhigyan-mohanta
       name: homebrew-tap
-    # Reference the archived universal binary
     ids:
       - darwin_archive
-    # Fix: The binary inside the archive has version suffix
-    binary: "gitmorph"
+    binary: "gitmorph"             # matches the binary inside archive
