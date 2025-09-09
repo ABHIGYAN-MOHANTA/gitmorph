@@ -79,4 +79,4 @@ homebrew_casks:
     ids:
       - darwin_archive
     # Fix: The binary inside the archive has version suffix
-    binary: "gitmorph_{{.Version}}", "gitmorph"
+    binary: "gitmorph"
