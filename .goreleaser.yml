@@ -1,0 +1,35 @@
+project_name: gitmorph
+
+builds:
+  - id: gitmorph
+    main: ./cmd/gitmorph/main.go
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: archive
+    builds:
+      - gitmorph
+    format: tar.gz
+    files:
+      - gitmorph
+
+universal_binaries:
+  - id: gitmorph
+    name_template: "{{.ProjectName}}_{{.Version}}"
+    ids:
+      - gitmorph
+
+before:
+  hooks:
+    - |
+      if [[ "$GOOS" == "darwin" ]]; then
+        lipo -create \
+          dist/darwin_arm64/gitmorph \
+          dist/darwin_amd64/gitmorph \
+          -output dist/gitmorph
+      fi
