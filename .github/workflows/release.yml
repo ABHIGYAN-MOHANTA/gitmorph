@@ -1,4 +1,4 @@
-name: Auto Release
+name: Release
 
 on:
   push:
@@ -7,33 +7,29 @@ on:
 
 jobs:
   release:
-    name: Auto GoReleaser Release
     runs-on: ubuntu-latest
     steps:
+      # Checkout full history + tags
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # needed to push tags
+          fetch-depth: 0
 
+      # Set up Go
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: 1.21
 
-      - name: Install dependencies
-        run: go mod tidy
-
-      - name: Determine next semantic version
+      # Calculate next version
+      - name: Determine next version
         id: version
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          LAST_TAG=$(git fetch --tags && git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
           echo "Last tag: $LAST_TAG"
-          
-          # Remove 'v' prefix
           VERSION=${LAST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
-          # Increment patch, handle rollovers
           PATCH=$((PATCH + 1))
           if [ $PATCH -gt 9 ]; then
             PATCH=0
@@ -46,20 +42,29 @@ jobs:
 
           NEXT_VERSION="v$MAJOR.$MINOR.$PATCH"
           echo "Next version: $NEXT_VERSION"
-
           echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create Git Tag
+      # Configure Git for tagging
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Create tag
+      - name: Create tag
+        run: |
           git tag ${{ steps.version.outputs.next_version }}
           git push origin ${{ steps.version.outputs.next_version }}
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v3
+      # Install GoReleaser
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
-          args: release --clean
+          install: true
+
+      # Run GoReleaser
+      - name: Run GoReleaser
+        run: goreleaser release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
