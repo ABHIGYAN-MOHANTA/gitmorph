@@ -46,8 +46,14 @@ var RootCmd = &cobra.Command{
 	Args:               cobra.ArbitraryArgs,
 	DisableFlagParsing: true, // pass all flags to Git
 	Run: func(cmd *cobra.Command, args []string) {
+		// If no arguments, show help and exit
+		if len(args) == 0 {
+			_ = cmd.Help()
+			return
+		}
+
 		// Skip auto-switch for internal commands
-		if len(args) > 0 && !skipAuto[args[0]] {
+		if !skipAuto[args[0]] {
 			if err := applyRepoProfile(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
