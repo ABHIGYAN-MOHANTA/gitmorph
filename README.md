@@ -23,6 +23,7 @@ gitmorph push origin main
 * This ensures the active profile’s Git identity and SSH key are correctly applied.
 * Running plain `git` commands may bypass the active profile and cause mismatched commits.
 * Older users please run gitmorph fix once after updating.
+* ⚠️ We highly recommend using a alias like this `alias gim='gitmorph'`
 
 ---
 
