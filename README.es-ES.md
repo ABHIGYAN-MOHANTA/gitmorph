@@ -24,7 +24,7 @@ gitmorph push origin main
 
 * Esto garantiza que la identidad de Git y la clave SSH del perfil activo se apliquen correctamente.
 * Ejecutar comandos de `git` sin prefijo puede omitir el perfil activo y provocar commits incorrectos.
-* Los usuarios que actualicen deben ejecutar gitmorph fix una vez después de la actualización.
+* Los usuarios que actualicen deben ejecutar `gitmorph fix` una vez después de la actualización.
 * ⚠️ Recomendamos encarecidamente utilizar un alias como `alias gim='gitmorph'`
 
 ---
@@ -125,7 +125,7 @@ gitmorph activate <profile-name>
 ```
 
 * Establece `user.name` y `user.email` de forma global
-* Establece o desestablece `core.sshCommand` para utilizar la clave SSH del perfil
+* Establece o desactiva `core.sshCommand` para utilizar la clave SSH del perfil
 * Añade un archivo `.gitmorph` en la raíz del proyecto para usar este perfil automáticamente
 
 ---
@@ -162,7 +162,7 @@ Ejemplo:
 
 ```bash
 gitmorph fix
-# Fixed ~/.gitmorph.json. 
+# Fixed ~/.gitmorph.json.
 # 'personal' is now the default profile.
 # Change it using 'gitmorph default <profile>'
 ```
